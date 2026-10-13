@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#F6C945" />
+  <meta name="description" content="法语入门每日一课：每天30词+10短句+5长句，语音朗读，打卡续学" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <title>法语入门每日一课</title>
+  <style>
+    :root {
+      /* 柠檬黄 + 淡粉色 主题色板 */
+      --lemon: #f6c945;          /* 柠檬黄主色 */
+      --lemon-bright: #ffd94d;   /* 亮柠檬黄 */
+      --lemon-soft: #fff3d6;     /* 柠檬黄浅底 */
+      --lemon-deep: #e0a800;     /* 深柠檬黄（文字强调） */
+      --pink: #ffd9e3;           /* 淡粉主色 */
+      --pink-soft: #fff0f4;      /* 淡粉浅底 */
+      --pink-deep: #e86a8a;      /* 深粉（强调） */
+      --green: #3cbf6e;
+      --text: #3d3226;           /* 暖棕色文字 */
+      --muted: #9a8a72;          /* 柔和棕灰 */
+      --bg: #fff8ec;             /* 柠檬黄奶油背景 */
+      --card: #ffffff;
+      --radius: 20px;
+      --shadow: rgba(246,201,69,.18);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: linear-gradient(135deg, #f6c945 0%, #ffd94d 45%, #ffd9e3 100%);
+      color: #5b4a1e;
+      padding: 18px 20px 58px;
+      border-radius: 0 0 26px 26px;
+      box-shadow: 0 6px 18px rgba(246,201,69,.35);
+    }
+    .header-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .app-title { font-size: 17px; font-weight: 800; letter-spacing: .5px; }
+    .streak-badge {
+      background: rgba(255,255,255,.55);
+      color: #8a6d00;
+      border-radius: 999px; padding: 6px 12px;
+      font-size: 13px; font-weight: 700; white-space: nowrap;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.5);
+    }
+    .today-line { margin-top: 14px; font-size: 14px; opacity: .8; font-weight: 600; }
+    .today-word { margin-top: 2px; font-size: 24px; font-weight: 800; letter-spacing: 1px; color: #6b5200; }
+
+    main { flex: 1; padding: 16px 16px 20px; margin-top: -34px; }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: 0 6px 20px var(--shadow);
+      padding: 18px; margin-bottom: 14px;
+      border: 1px solid #ffeec2;
+    }
+    /* 相间：偶数字卡用淡粉底 */
+    .card:nth-child(even) {
+      background: linear-gradient(180deg, #fff 0%, var(--pink-soft) 100%);
+    }
+    .card h2 {
+      font-size: 15px; color: var(--lemon-deep); margin-bottom: 12px;
+      display: flex; align-items: center; gap: 8px;
+      font-weight: 800;
+    }
+    .card h2 .num {
+      background: linear-gradient(135deg, var(--lemon-bright), var(--pink-deep));
+      color: #fff;
+      width: 22px; height: 22px; border-radius: 7px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 13px; flex-shrink: 0;
+    }
+    .lesson-meta { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+
+    /* 分组标题 */
+    .sec-title {
+      font-size: 14px; font-weight: 800; color: var(--lemon-deep);
+      margin: 14px 0 8px; display: flex; align-items: center; gap: 6px;
+    }
+    .sec-title .tag {
+      background: var(--lemon-soft); color: var(--lemon-deep);
+      font-size: 11px; font-weight: 700;
+      padding: 2px 8px; border-radius: 99px;
+    }
+
+    /* 单词表 */
+    .word-list { list-style: none; }
+    .word-list li {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 7px 2px; border-bottom: 1px dashed #ffe9c4; font-size: 15px;
+      gap: 8px;
+    }
+    .word-list li:last-child { border-bottom: none; }
+    .word-list .w-fr { font-weight: 700; color: #8a6d00; }
+    .word-list .w-zh { color: var(--muted); font-size: 13px; flex-shrink: 0; }
+
+    /* 句子（淡粉） */
+    .sentence {
+      background: linear-gradient(135deg, var(--pink-soft), #fff);
+      border-left: 4px solid var(--pink-deep);
+      border-radius: 12px;
+      padding: 10px 12px; margin: 6px 0 10px;
+    }
+    .sentence .fr { font-size: 17px; font-weight: 700; color: var(--pink-deep); }
+    .sentence .zh { font-size: 14px; color: #8a6d5a; margin-top: 2px; }
+
+    /* 长句（柠檬黄） */
+    .long-sentence {
+      background: linear-gradient(135deg, var(--lemon-soft), #fff);
+      border-radius: 14px;
+      padding: 12px 14px; margin: 8px 0;
+      border: 1px solid #ffe7a8;
+    }
+    .long-sentence .fr { font-size: 15px; font-weight: 700; color: #a17a00; line-height: 1.6; }
+    .long-sentence .zh { font-size: 14px; color: #8a6d5a; margin-top: 4px; line-height: 1.6; }
+
+    /* 朗读按钮 */
+    .speak-btn {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--lemon-deep); font-size: 13px; font-weight: 700;
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 8px; border-radius: 8px;
+    }
+    .speak-btn:hover { background: rgba(246,201,69,.15); }
+    .speak-btn.small { font-size: 12px; padding: 3px 6px; }
+    .speak-btn.playing { color: var(--pink-deep); }
+
+    /* 播放全部 */
+    .play-all {
+      background: linear-gradient(135deg, var(--lemon-bright), var(--pink-deep));
+      color: #fff;
+      border: none; border-radius: 12px;
+      padding: 10px 16px; font-size: 14px; font-weight: 800;
+      cursor: pointer; margin-bottom: 8px;
+      box-shadow: 0 4px 12px rgba(232,106,138,.25);
+    }
+    .play-all:active { transform: scale(.98); }
+
+    .btn {
+      width: 100%; border: none; border-radius: 16px;
+      padding: 15px; font-size: 16px; font-weight: 800; cursor: pointer;
+      transition: transform .08s, opacity .2s;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--lemon-bright) 0%, var(--pink-deep) 100%);
+      color: #fff;
+      box-shadow: 0 6px 16px rgba(246,201,69,.4);
+    }
+    .btn-done { background: linear-gradient(135deg, #5dd0a0, #3c9d6a); color: #fff; }
+    .btn-ghost { background: var(--lemon-soft); color: var(--lemon-deep); }
+    .btn[disabled] { opacity: .5; cursor: not-allowed; }
+
+    .checked-in { text-align: center; padding: 28px 10px; }
+    .check-circle {
+      width: 74px; height: 74px; border-radius: 50%;
+      background: linear-gradient(135deg, #ffd94d, #f6c945);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 14px; font-size: 40px;
+      box-shadow: 0 8px 20px rgba(246,201,69,.45);
+    }
+    .checked-in .tip { color: var(--muted); font-size: 14px; margin-top: 8px; }
+
+    .progress-bar {
+      height: 10px; border-radius: 99px;
+      background: #ffe9c4; overflow: hidden; margin-top: 12px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--lemon-bright), var(--pink-deep));
+      border-radius: 99px; transition: width .4s;
+    }
+
+    .info-row { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--muted); }
+
+    .install-banner {
+      background: linear-gradient(90deg,#f6c945,#ffd9e3); color:#6b5200;
+      border-radius: 16px; padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      margin-bottom: 14px; font-size: 14px; font-weight: 600;
+      border: 1px solid #ffe7a8;
+    }
+    .install-banner button {
+      background:#fff; color: var(--pink-deep); border:none; border-radius: 10px;
+      padding: 8px 14px; font-weight:800; cursor:pointer; flex-shrink: 0;
+    }
+    .hidden { display: none !important; }
+    footer { text-align: center; color: var(--muted); font-size: 12px; padding: 6px 0 16px; }
+    .divider { border: none; border-top: 1px solid #ffe9c4; margin: 14px 0; }
+
+    /* 文章 */
+    .article-title { font-size: 19px; font-weight: 800; color: var(--lemon-deep); margin-bottom: 6px; }
+    .article-level { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+    .article-para {
+      background: linear-gradient(135deg, var(--pink-soft), #fff);
+      border-radius: 12px;
+      padding: 10px 12px; margin: 8px 0; border-left: 3px solid var(--pink-deep);
+    }
+    .article-para .fr { font-size: 15px; font-weight: 700; color: #a17a00; line-height: 1.6; }
+    .article-para .zh { font-size: 13px; color: #8a6d5a; margin-top: 3px; }
+    .lesson-chip {
+      display: inline-block; background: var(--lemon-soft); color: var(--lemon-deep);
+      border-radius: 999px; padding: 4px 12px; font-size: 12px; font-weight: 700;
+      margin: 4px 6px 4px 0;
+    }
+    .stage-note {
+      background: var(--lemon-soft); border: 1px solid #ffe7a8; color: #a17a00;
+      border-radius: 12px; padding: 10px 12px; font-size: 13px; margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-top">
+      <span class="app-title">🇫🇷 法语入门 · 每日一课</span>
+      <span class="streak-badge">🔥 连续 <span id="streak">0</span> 天</span>
+    </div>
+    <div class="today-line" id="todayLine">正在加载今日课程…</div>
+    <div class="today-word" id="todayWord"></div>
+  </header>
+
+  <main>
+    <div class="install-banner hidden" id="installBanner">
+      <span>📱 安装到手机桌面，随时学习</span>
+      <button id="installBtn">安装</button>
+    </div>
+
+    <div class="card" id="lessonCard"></div>
+
+    <div class="card">
+      <h2>📚 学习进度</h2>
+      <div class="info-row">
+        <span>已完成 <b id="doneCount">0</b> 课</span>
+        <span>今日学习 <b id="learnMinutes">0</b> 分钟</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+
+    <div class="card">
+      <h2>🔔 每日提醒</h2>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:10px">开启通知，每天自动收到新课程提醒，不错过打卡。</p>
+      <button class="btn btn-ghost" id="notifyBtn">开启每日提醒</button>
+    </div>
+
+    <footer>Bon courage ! 坚持每天一课，法语轻松入门</footer>
+  </main>
+
+  <script src="data.js"></script>
+  <script>
+    /* ================= 工具函数 ================= */
+    const LS = window.localStorage;
+    const pad = (n) => String(n).padStart(2,'0');
+    const dateStr = (d) => d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+    const todayStr = () => dateStr(new Date());
+    const load = (key, def) => { try { const v = LS.getItem(key); return v ? JSON.parse(v) : def; } catch(e){ return def; } };
+    const save = (key, val) => LS.setItem(key, JSON.stringify(val));
+
+    /* ================= 状态 =================
+     * state.checkins : { "YYYY-MM-DD": 内容索引 }
+     * state.target   : 当前应学内容索引（打卡后 +1，未打卡保持不变 → 重复推荐）
+     * state.streak   : 连续打卡天数
+     * 内容索引映射：
+     *   0 .. COURSES.length-1         → 基础课程
+     *   COURSES.length .. +ARTICLES   → 简短文章（学完基础课程后进入）
+     */
+    const STATE_KEY = 'francais_state_v2';
+    let state = load(STATE_KEY, { checkins: {}, target: 0, streak: 0 });
+    const TOTAL_CONTENT = window.COURSES.length + window.ARTICLES.length;
+
+    /* 获取当前目标内容对象 */
+    function getContentByIndex(idx) {
+      idx = idx % TOTAL_CONTENT;
+      if (idx < window.COURSES.length) {
+        return { type: 'course', idx, data: window.COURSES[idx] };
+      }
+      const aIdx = idx - window.COURSES.length;
+      return { type: 'article', idx, data: window.ARTICLES[aIdx] };
+    }
+
+    function getTodayContent() {
+      const today = todayStr();
+      if (state.checkins[today] !== undefined) {
+        const idx = state.checkins[today];
+        const c = getContentByIndex(idx);
+        return { ...c, checkedIn: true };
+      }
+      const c = getContentByIndex(state.target);
+      return { ...c, checkedIn: false };
+    }
+
+    /* ================= 语音朗读（Web Speech API） ================= */
+    const synth = ('speechSynthesis' in window) ? window.speechSynthesis : null;
+    let frVoice = null;
+    let speakingText = null;
+
+    function pickFrenchVoice() {
+      if (!synth) return null;
+      const voices = synth.getVoices();
+      // 优先 fr-FR，其次任何法语
+      frVoice = voices.find(v => /^fr[-_]FR/i.test(v.lang)) ||
+                voices.find(v => /^fr/i.test(v.lang)) || null;
+      return frVoice;
+    }
+    if (synth) {
+      pickFrenchVoice();
+      synth.onvoiceschanged = pickFrenchVoice;
+    }
+
+    function speak(text, rate) {
+      if (!synth) { alert('当前浏览器不支持语音朗读'); return; }
+      synth.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'fr-FR';
+      if (frVoice) u.voice = frVoice;
+      u.rate = rate || 0.85;           // 初学者稍慢
+      u.pitch = 1;
+      synth.speak(u);
+    }
+
+    /* 播放整个课程（队列朗读） */
+    let playQueue = [];
+    let isPlaying = false;
+    function playAll(items, rate) {
+      if (!synth) { alert('当前浏览器不支持语音朗读'); return; }
+      if (isPlaying) { synth.cancel(); isPlaying = false; return; }   // 再次点击停止
+      playQueue = items.map(i => i.fr);
+      isPlaying = true;
+      const speakNext = () => {
+        if (!isPlaying || playQueue.length === 0) { isPlaying = false; return; }
+        const txt = playQueue.shift();
+        const u = new SpeechSynthesisUtterance(txt);
+        u.lang = 'fr-FR';
+        if (frVoice) u.voice = frVoice;
+        u.rate = rate || 0.85;
+        u.onend = () => setTimeout(speakNext, 400);
+        u.onerror = () => { isPlaying = false; };
+        synth.speak(u);
+      };
+      speakNext();
+    }
+
+    /* ================= 打卡 ================= */
+    function checkIn() {
+      const today = todayStr();
+      if (state.checkins[today] !== undefined) return; // 防重复
+      state.checkins[today] = state.target;
+      state.target = (state.target + 1) % TOTAL_CONTENT;
+      // 连续天数
+      const y = new Date(); y.setDate(y.getDate() - 1);
+      const yesterdayStr = dateStr(y);
+      state.streak = (state.checkins[yesterdayStr] !== undefined) ? (state.streak + 1) : 1;
+      save(STATE_KEY, state);
+      render();
+      try {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('打卡成功！✓', { body: '明天继续来学新内容吧～' });
+        }
+      } catch(e){}
+    }
+
+    /* ================= 渲染 ================= */
+    function render() {
+      const content = getTodayContent();
+      const today = todayStr();
+      const doneCount = Object.keys(state.checkins).length;
+      const progress = Math.min(100, Math.round(doneCount / TOTAL_CONTENT * 100));
+      const learnedMin = load('minutes_' + today, 0);
+
+      document.getElementById('streak').textContent = state.streak;
+      document.getElementById('doneCount').textContent = doneCount;
+      document.getElementById('learnMinutes').textContent = learnedMin;
+      document.getElementById('progressFill').style.width = progress + '%';
+
+      const card = document.getElementById('lessonCard');
+      let html = '';
+      document.getElementById('todayWord').textContent = content.type === 'course' ? content.data.title : '📰 今日阅读';
+      document.getElementById('todayLine').textContent = `今天是 ${today} · ${content.checkedIn ? '已完成' : '待打卡'}`;
+
+      if (content.type === 'course') {
+        html += renderCourse(content);
+      } else {
+        html += renderArticle(content);
+      }
+      card.innerHTML = html;
+    }
+
+    /* 渲染课程 */
+    function renderCourse(content) {
+      const c = content.data;
+      let h = `
+        <h2>📖 第 ${c.day} 课 · ${c.title}</h2>
+        <div class="lesson-meta">🎯 学习重点：${c.focus}　·　30词 / 10短句 / 5长句</div>
+      `;
+      if (content.checkedIn) {
+        h += `
+          <div class="checked-in">
+            <div class="check-circle">✓</div>
+            <div style="font-weight:700;font-size:18px;color:var(--green)">今日打卡成功！</div>
+            <div class="tip">明天记得回来学新内容哦～</div>
+          </div>
+        `;
+        return h;
+      }
+
+      // 单词
+      h += `<div class="sec-title">📌 今日词汇 <span class="tag">${c.words.length} 词</span>
+              <button class="speak-btn" onclick="playWords()">🔊 全部朗读</button></div>`;
+      h += `<ul class="word-list">`;
+      c.words.forEach((w, i) => {
+        h += `<li><span class="w-fr">${w[0]}</span>
+                <span style="display:inline-flex;align-items:center;gap:6px">
+                  <span class="w-zh">${w[1]}</span>
+                  <button class="speak-btn small" onclick="speak('${esc(w[0])}')">🔊</button>
+                </span></li>`;
+      });
+      h += `</ul>`;
+
+      // 短句
+      h += `<div class="sec-title">💬 实用短句 <span class="tag">${c.shorts.length} 句</span>
+              <button class="speak-btn" onclick="playShortSentences()">🔊 全部朗读</button></div>`;
+      c.shorts.forEach(s => {
+        h += `<div class="sentence">
+                <div class="fr">${s[0]} <button class="speak-btn small" onclick="speak('${esc(s[0])}')">🔊</button></div>
+                <div class="zh">${s[1]}</div>
+              </div>`;
+      });
+
+      // 长句
+      h += `<div class="sec-title">📝 5 个长句 <span class="tag">挑战</span>
+              <button class="speak-btn small" onclick="speakLongSentences()">🔊 全部朗读</button></div>`;
+      c.longs.forEach(l => {
+        h += `<div class="long-sentence">
+                <div class="fr">${l[0]} <button class="speak-btn small" onclick="speak('${esc(l[0])}')">🔊</button></div>
+                <div class="zh">${l[1]}</div>
+              </div>`;
+      });
+
+      h += `
+        <hr class="divider" />
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">学完上面的内容（先跟读单词，再读短句和长句），点击打卡完成今日学习。</p>
+        <button class="btn btn-primary" onclick="checkIn()">✅ 我已学完，今日打卡</button>
+      `;
+      return h;
+    }
+
+    /* 渲染文章 */
+    function renderArticle(content) {
+      const a = content.data;
+      let h = `
+        <h2>📰 每日短文 · 阅读阶段</h2>
+        <div class="stage-note">🎉 恭喜！你已经完成基础课程，进入<b>短文阅读</b>阶段。每天一篇 A1-A2 难度短文，学习地道表达。</div>
+        <div class="article-title">${a.title}</div>
+        <div class="article-level">难度：A1-A2 · 带逐句翻译与朗读</div>
+      `;
+      if (content.checkedIn) {
+        h += `
+          <div class="checked-in">
+            <div class="check-circle">✓</div>
+            <div style="font-weight:700;font-size:18px;color:var(--green)">今日阅读打卡成功！</div>
+            <div class="tip">明天继续下一篇哦～</div>
+          </div>
+        `;
+        return h;
+      }
+      h += `<button class="play-all" onclick="playAll(${JSON.stringify(a.paras.map(p=>({fr:p.fr})))},0.85)">🔊 播放全文</button>`;
+      a.paras.forEach(p => {
+        h += `<div class="article-para">
+                <div class="fr">${p.fr} <button class="speak-btn small" onclick="speak('${esc(p.fr)}')">🔊</button></div>
+                <div class="zh">${p.zh}</div>
+              </div>`;
+      });
+      h += `
+        <hr class="divider" />
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">跟读并理解文章后，点击打卡完成今日阅读。</p>
+        <button class="btn btn-primary" onclick="checkIn()">✅ 我已读完，今日打卡</button>
+      `;
+      return h;
+    }
+
+    /* ================= 朗读辅助 ================= */
+    function esc(s) {
+      return String(s).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+    function speakWords() {
+      const c = getTodayContent();
+      if (c.type === 'course') playAll(c.data.words.map(w => ({fr: w[0]})), 0.85);
+    }
+    function speakShortSentences() {
+      const c = getTodayContent();
+      if (c.type === 'course') playAll(c.data.shorts.map(s => ({fr: s[0]})), 0.85);
+    }
+    function speakLongSentences() {
+      const c = getTodayContent();
+      if (c.type === 'course') playAll(c.data.longs.map(l => ({fr: l[0]})), 0.85);
+    }
+
+    /* ================= 学习计时 ================= */
+    let secOnPage = 0;
+    setInterval(() => {
+      secOnPage++;
+      if (secOnPage % 60 === 0) {
+        const today = todayStr();
+        const m = load('minutes_' + today, 0) + 1;
+        save('minutes_' + today, m);
+        document.getElementById('learnMinutes').textContent = m;
+      }
+    }, 60000);
+
+    /* ================= PWA 安装 ================= */
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installBanner').classList.remove('hidden');
+    });
+    document.getElementById('installBtn').addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      document.getElementById('installBanner').classList.add('hidden');
+    });
+
+    /* ================= 每日提醒（通知） ================= */
+    document.getElementById('notifyBtn').addEventListener('click', async () => {
+      if (!('Notification' in window)) { alert('当前浏览器不支持通知'); return; }
+      const perm = await Notification.requestPermission();
+      if (perm === 'granted') {
+        const btn = document.getElementById('notifyBtn');
+        btn.textContent = '提醒已开启 ✓';
+        btn.disabled = true;
+        btn.classList.remove('btn-ghost');
+        btn.classList.add('btn-done');
+        scheduleDailyReminder();
+      } else {
+        alert('未授权通知，可在浏览器设置中开启');
+      }
+    });
+
+    function scheduleDailyReminder() {
+      const now = new Date();
+      const target = new Date(now);
+      target.setHours(8, 0, 0, 0);
+      if (target <= now) target.setDate(target.getDate() + 1);
+      const delay = target - now;
+      setTimeout(() => {
+        try {
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('📖 新内容已准备好', { body: '今天也要坚持学法语哦，快来打卡！' });
+          }
+        } catch(e){}
+        scheduleDailyReminder();
+      }, delay);
+    }
+
+    /* ================= 注册 Service Worker ================= */
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW 注册失败', e));
+      });
+    }
+
+    /* 首屏渲染 */
+    render();
+  </script>
+</body>
+</html>
