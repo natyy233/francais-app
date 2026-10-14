@@ -277,6 +277,12 @@
       <button class="btn btn-ghost" id="notifyBtn">开启每日提醒</button>
     </div>
 
+    <div class="card" id="historyCard">
+      <h2>🕘 历史回看</h2>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:10px">回顾你打卡过、学过的课程。</p>
+      <div id="historyList"></div>
+    </div>
+
     <footer>Bon courage ! 坚持每天一课，法语轻松入门</footer>
   </main>
 
@@ -470,8 +476,10 @@
     }
 
     /* ================= 渲染 ================= */
+    // viewingHistory 不为 null 时，主卡片显示该日期的历史内容
+    let viewingHistoryDate = null;
+
     function render() {
-      const content = getTodayContent();
       const today = todayStr();
       const doneCount = Object.keys(state.checkins).length;
       const progress = Math.min(100, Math.round(doneCount / TOTAL_CONTENT * 100));
@@ -485,15 +493,68 @@
 
       const card = document.getElementById('lessonCard');
       let html = '';
-      document.getElementById('todayWord').textContent = content.type === 'course' ? content.data.title : '📰 今日阅读';
-      document.getElementById('todayLine').textContent = `今天是 ${today} · ${content.checkedIn ? '已完成' : '待打卡'}`;
 
-      if (content.type === 'course') {
-        html += renderCourse(content);
+      // 历史回看模式
+      if (viewingHistoryDate && state.checkins[viewingHistoryDate] !== undefined) {
+        const idx = state.checkins[viewingHistoryDate];
+        const c = getContentByIndex(idx);
+        document.getElementById('todayWord').textContent = '🕘 历史回看';
+        document.getElementById('todayLine').textContent = `${viewingHistoryDate} 的课程`;
+        html += `<div style="margin-bottom:12px">
+                   <button class="btn btn-ghost" onclick="backToToday()">← 返回今日课程</button>
+                 </div>`;
+        if (c.type === 'course') html += renderCourse({ ...c, checkedIn: true });
+        else html += renderArticle({ ...c, checkedIn: true });
       } else {
-        html += renderArticle(content);
+        const content = getTodayContent();
+        document.getElementById('todayWord').textContent = content.type === 'course' ? content.data.title : '📰 今日阅读';
+        document.getElementById('todayLine').textContent = `今天是 ${today} · ${content.checkedIn ? '已完成' : '待打卡'}`;
+        if (content.type === 'course') {
+          html += renderCourse(content);
+        } else {
+          html += renderArticle(content);
+        }
       }
+
       card.innerHTML = html;
+      renderHistory();
+    }
+
+    /* 渲染历史回看列表 */
+    function renderHistory() {
+      const list = document.getElementById('historyList');
+      if (!list) return;
+      const dates = Object.keys(state.checkins).sort().reverse();
+      if (dates.length === 0) {
+        list.innerHTML = '<p style="font-size:13px;color:var(--muted)">还没有打卡记录，先去学今天的课程吧～</p>';
+        return;
+      }
+      let h = '';
+      dates.forEach(d => {
+        const c = getContentByIndex(state.checkins[d]);
+        const label = c.type === 'course' ? `第${c.data.day}课 · ${c.data.title}` : `📰 ${c.data.title}`;
+        const active = viewingHistoryDate === d;
+        h += `<div class="history-item" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 2px;border-bottom:1px dashed #ffe9c4">
+                <span style="font-size:13px;color:var(--muted)">${d}</span>
+                <span style="font-size:14px;font-weight:700;color:var(--lemon-deep)">${label}</span>
+                <button class="speak-btn small" onclick="viewHistory('${d}')">${active ? '查看中' : '回看'}</button>
+              </div>`;
+      });
+      list.innerHTML = h;
+    }
+
+    /* 查看某天历史 */
+    function viewHistory(date) {
+      viewingHistoryDate = date;
+      render();
+      window.scrollTo(0, 0);
+    }
+
+    /* 返回今日 */
+    function backToToday() {
+      viewingHistoryDate = null;
+      render();
+      window.scrollTo(0, 0);
     }
 
     /* 渲染课程 */
@@ -503,16 +564,7 @@
         <h2>📖 第 ${c.day} 课 · ${c.title}</h2>
         <div class="lesson-meta">🎯 学习重点：${c.focus}　·　30词 / 10短句 / 5长句</div>
       `;
-      if (content.checkedIn) {
-        h += `
-          <div class="checked-in">
-            <div class="check-circle">✓</div>
-            <div style="font-weight:700;font-size:18px;color:var(--green)">今日打卡成功！</div>
-            <div class="tip">明天记得回来学新内容哦～</div>
-          </div>
-        `;
-        return h;
-      }
+      // 已打卡：内容仍完整显示，在末尾追加打卡成功提示
 
       // 单词
       h += `<div class="sec-title">📌 今日词汇 <span class="tag">${c.words.length} 词</span>
@@ -547,11 +599,22 @@
               </div>`;
       });
 
-      h += `
-        <hr class="divider" />
-        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">学完上面的内容（先跟读单词，再读短句和长句），点击打卡完成今日学习。</p>
-        <button class="btn btn-primary" onclick="checkIn()">✅ 我已学完，今日打卡</button>
-      `;
+      if (content.checkedIn) {
+        h += `
+          <hr class="divider" />
+          <div class="checked-in">
+            <div class="check-circle">✓</div>
+            <div style="font-weight:700;font-size:18px;color:var(--green)">今日打卡成功！</div>
+            <div class="tip">明天记得回来学新内容哦～</div>
+          </div>
+        `;
+      } else {
+        h += `
+          <hr class="divider" />
+          <p style="font-size:13px;color:var(--muted);margin-bottom:12px">学完上面的内容（先跟读单词，再读短句和长句），点击打卡完成今日学习。</p>
+          <button class="btn btn-primary" onclick="checkIn()">✅ 我已学完，今日打卡</button>
+        `;
+      }
       return h;
     }
 
@@ -564,16 +627,6 @@
         <div class="article-title">${a.title}</div>
         <div class="article-level">难度：A1-A2 · 带逐句翻译与朗读</div>
       `;
-      if (content.checkedIn) {
-        h += `
-          <div class="checked-in">
-            <div class="check-circle">✓</div>
-            <div style="font-weight:700;font-size:18px;color:var(--green)">今日阅读打卡成功！</div>
-            <div class="tip">明天继续下一篇哦～</div>
-          </div>
-        `;
-        return h;
-      }
       h += `<button class="play-all" onclick="playAll(${JSON.stringify(a.paras.map(p=>({fr:p.fr})))},currentRate())">🔊 播放全文</button>`;
       a.paras.forEach(p => {
         h += `<div class="article-para">
@@ -581,11 +634,23 @@
                 <div class="zh">${p.zh}</div>
               </div>`;
       });
-      h += `
-        <hr class="divider" />
-        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">跟读并理解文章后，点击打卡完成今日阅读。</p>
-        <button class="btn btn-primary" onclick="checkIn()">✅ 我已读完，今日打卡</button>
-      `;
+
+      if (content.checkedIn) {
+        h += `
+          <hr class="divider" />
+          <div class="checked-in">
+            <div class="check-circle">✓</div>
+            <div style="font-weight:700;font-size:18px;color:var(--green)">今日阅读打卡成功！</div>
+            <div class="tip">明天继续下一篇哦～</div>
+          </div>
+        `;
+      } else {
+        h += `
+          <hr class="divider" />
+          <p style="font-size:13px;color:var(--muted);margin-bottom:12px">跟读并理解文章后，点击打卡完成今日阅读。</p>
+          <button class="btn btn-primary" onclick="checkIn()">✅ 我已读完，今日打卡</button>
+        `;
+      }
       return h;
     }
 
@@ -594,16 +659,23 @@
       return String(s).replace(/'/g, "\\'").replace(/"/g, '&quot;');
     }
     function speakWords() {
-      const c = getTodayContent();
+      const c = getContentForSpeaking();
       if (c.type === 'course') playAll(c.data.words.map(w => ({fr: w[0]})), currentRate());
     }
     function speakShortSentences() {
-      const c = getTodayContent();
+      const c = getContentForSpeaking();
       if (c.type === 'course') playAll(c.data.shorts.map(s => ({fr: s[0]})), currentRate());
     }
     function speakLongSentences() {
-      const c = getTodayContent();
+      const c = getContentForSpeaking();
       if (c.type === 'course') playAll(c.data.longs.map(l => ({fr: l[0]})), currentRate());
+    }
+    /* 朗读时取当前显示的内容（历史回看时取历史内容） */
+    function getContentForSpeaking() {
+      if (viewingHistoryDate && state.checkins[viewingHistoryDate] !== undefined) {
+        return getContentByIndex(state.checkins[viewingHistoryDate]);
+      }
+      return getTodayContent();
     }
 
     /* ================= 学习计时 ================= */
