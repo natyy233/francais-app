@@ -58,6 +58,17 @@
       font-size: 13px; font-weight: 700; white-space: nowrap;
       box-shadow: inset 0 0 0 1px rgba(255,255,255,.5);
     }
+    .header-tools { display: flex; align-items: center; gap: 8px; }
+    .rate-btn {
+      background: rgba(255,255,255,.55);
+      color: #8a6d00;
+      border: none; border-radius: 999px;
+      padding: 6px 12px; font-size: 13px; font-weight: 700;
+      cursor: pointer; white-space: nowrap;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.5);
+      transition: background .2s, color .2s;
+    }
+    .rate-btn.active { background: var(--pink-deep); color: #fff; }
     .today-line { margin-top: 14px; font-size: 14px; opacity: .8; font-weight: 600; }
     .today-word { margin-top: 2px; font-size: 24px; font-weight: 800; letter-spacing: 1px; color: #6b5200; }
 
@@ -230,7 +241,10 @@
   <header>
     <div class="header-top">
       <span class="app-title">🇫🇷 法语入门 · 每日一课</span>
-      <span class="streak-badge">🔥 连续 <span id="streak">0</span> 天</span>
+      <div class="header-tools">
+        <button class="rate-btn" id="rateBtn" onclick="toggleRate()" title="切换朗读速度">🐢 慢速</button>
+        <span class="streak-badge">🔥 连续 <span id="streak">0</span> 天</span>
+      </div>
     </div>
     <div class="today-line" id="todayLine">正在加载今日课程…</div>
     <div class="today-word" id="todayWord"></div>
@@ -251,6 +265,10 @@
         <span>今日学习 <b id="learnMinutes">0</b> 分钟</span>
       </div>
       <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="info-row" id="syncRow" style="margin-top:12px;align-items:center">
+        <span id="syncStatus">☁️ 云端同步</span>
+        <button class="speak-btn small" id="syncBtn" onclick="onSyncBtnClick()">配置</button>
+      </div>
     </div>
 
     <div class="card">
@@ -314,6 +332,26 @@
     let frVoice = null;
     let voicesReady = !!(synth && synth.getVoices && synth.getVoices().length);
 
+    /* 朗读速度：正常 0.85 / 慢速 0.6（初学者跟着读） */
+    const RATE_KEY = 'francais_rate_slow';
+    const RATE_NORMAL = 0.85;
+    const RATE_SLOW = 0.6;
+    let isSlow = load(RATE_KEY, false);
+    function currentRate() { return isSlow ? RATE_SLOW : RATE_NORMAL; }
+
+    /* 切换慢速/正常朗读，并同步按钮状态 */
+    function toggleRate() {
+      isSlow = !isSlow;
+      save(RATE_KEY, isSlow);
+      updateRateBtn();
+    }
+    function updateRateBtn() {
+      const btn = document.getElementById('rateBtn');
+      if (!btn) return;
+      btn.textContent = isSlow ? '🐢 慢速' : '🐇 正常';
+      btn.classList.toggle('active', isSlow);
+    }
+
     function pickFrenchVoice() {
       if (!synth) return null;
       const voices = synth.getVoices() || [];
@@ -361,7 +399,7 @@
         const u = new SpeechSynthesisUtterance(text);
         u.lang = 'fr-FR';
         if (frVoice) u.voice = frVoice;
-        u.rate = rate || 0.85;           // 初学者稍慢
+        u.rate = rate || currentRate();  // 跟随慢速/正常设置
         u.pitch = 1;
         synth.speak(u);
       } else {
@@ -395,7 +433,7 @@
           const u = new SpeechSynthesisUtterance(txt);
           u.lang = 'fr-FR';
           if (frVoice) u.voice = frVoice;
-          u.rate = rate || 0.85;
+          u.rate = rate || currentRate();
           u.onend = () => setTimeout(speakNext, 400);
           u.onerror = () => { isPlaying = false; };
           synth.speak(u);
@@ -423,6 +461,7 @@
       state.streak = (state.checkins[yesterdayStr] !== undefined) ? (state.streak + 1) : 1;
       save(STATE_KEY, state);
       render();
+      syncAfterCheckIn();
       try {
         if ('Notification' in window && Notification.permission === 'granted') {
           new Notification('打卡成功！✓', { body: '明天继续来学新内容吧～' });
@@ -442,6 +481,7 @@
       document.getElementById('doneCount').textContent = doneCount;
       document.getElementById('learnMinutes').textContent = learnedMin;
       document.getElementById('progressFill').style.width = progress + '%';
+      updateRateBtn();
 
       const card = document.getElementById('lessonCard');
       let html = '';
@@ -534,7 +574,7 @@
         `;
         return h;
       }
-      h += `<button class="play-all" onclick="playAll(${JSON.stringify(a.paras.map(p=>({fr:p.fr})))},0.85)">🔊 播放全文</button>`;
+      h += `<button class="play-all" onclick="playAll(${JSON.stringify(a.paras.map(p=>({fr:p.fr})))},currentRate())">🔊 播放全文</button>`;
       a.paras.forEach(p => {
         h += `<div class="article-para">
                 <div class="fr">${p.fr} <button class="speak-btn small" onclick="speak('${esc(p.fr)}')">🔊</button></div>
@@ -555,15 +595,15 @@
     }
     function speakWords() {
       const c = getTodayContent();
-      if (c.type === 'course') playAll(c.data.words.map(w => ({fr: w[0]})), 0.85);
+      if (c.type === 'course') playAll(c.data.words.map(w => ({fr: w[0]})), currentRate());
     }
     function speakShortSentences() {
       const c = getTodayContent();
-      if (c.type === 'course') playAll(c.data.shorts.map(s => ({fr: s[0]})), 0.85);
+      if (c.type === 'course') playAll(c.data.shorts.map(s => ({fr: s[0]})), currentRate());
     }
     function speakLongSentences() {
       const c = getTodayContent();
-      if (c.type === 'course') playAll(c.data.longs.map(l => ({fr: l[0]})), 0.85);
+      if (c.type === 'course') playAll(c.data.longs.map(l => ({fr: l[0]})), currentRate());
     }
 
     /* ================= 学习计时 ================= */
@@ -624,6 +664,125 @@
         scheduleDailyReminder();
       }, delay);
     }
+
+    /* ================= 云端同步（GitHub Gist） =================
+     * 把打卡数据 state 存到云端 Gist，实现网页端与手机端同步。
+     * 需要：
+     *   1. GitHub Personal Access Token（勾选 gist 权限即可）
+     *   2. 一个 Gist 的 ID（可以是任意内容）
+     * 填好后既可写进下面 SYNC_CFG，也可在应用内"设置"里填写（存 localStorage）。
+     * 注意：Token 写进公开页面有泄露风险，请使用仅 gist 权限的专属 Token。
+     */
+    const SYNC_KEY = 'francais_sync_cfg';
+    const SYNC_DATA_KEY = 'francais_sync_data';
+    // 可在此填入，或打开应用后在"配置"中填写
+    const SYNC_DEFAULT = { token: '', gist: '' };
+    let syncCfg = Object.assign({}, SYNC_DEFAULT, load(SYNC_KEY, {}));
+    function saveSyncCfg(cfg) { syncCfg = cfg; save(SYNC_KEY, cfg); }
+
+    /* 状态文本 */
+    function setSyncStatus(txt) {
+      const el = document.getElementById('syncStatus');
+      if (el) el.textContent = txt;
+    }
+
+    /* 是否已配置 */
+    function syncConfigured() { return !!(syncCfg.token && syncCfg.gist); }
+
+    /* 读取云端数据 */
+    async function gistRead() {
+      const url = 'https://api.github.com/gists/' + encodeURIComponent(syncCfg.gist);
+      const res = await fetch(url, {
+        headers: { 'Authorization': 'token ' + syncCfg.token }
+      });
+      if (!res.ok) throw new Error('读取失败 HTTP ' + res.status);
+      const data = await res.json();
+      const files = data.files || {};
+      const file = files[Object.keys(files)[0]];
+      const raw = file && file.content ? file.content : '{}';
+      return JSON.parse(raw);
+    }
+
+    /* 写入云端 Gist（整体覆盖） */
+    async function gistWrite(obj) {
+      const url = 'https://api.github.com/gists/' + encodeURIComponent(syncCfg.gist);
+      const filename = 'francais-sync.json';
+      const body = JSON.stringify({
+        description: '法语学习打卡同步数据（TeleAgent 自动维护）',
+        files: { [filename]: { content: JSON.stringify(obj) } }
+      });
+      const res = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': 'token ' + syncCfg.token,
+          'Content-Type': 'application/json'
+        },
+        body
+      });
+      if (!res.ok) throw new Error('写入失败 HTTP ' + res.status);
+    }
+
+    /* 拉取云端并合并到本地（云端较新则覆盖） */
+    async function pullFromCloud() {
+      if (!syncConfigured()) return;
+      const cloud = await readGistSafe();
+      if (!cloud || !cloud.state) return;
+      const localMtime = load(SYNC_DATA_KEY, { mtime: 0 }).mtime || 0;
+      const cloudMtime = cloud.mtime || 0;
+      if (cloudMtime > localMtime) {
+        // 云端更新：覆盖本地并保存
+        const data = { state: cloud.state, mtime: cloudMtime };
+        save(SYNC_DATA_KEY, data);
+        state = Object.assign({}, state, cloud.state);
+        save(STATE_KEY, state);
+        setSyncStatus('☁️ 已同步');
+      }
+    }
+
+    /* 拉取云端（失败容错） */
+    async function readGistSafe() {
+      try { return await gistRead(); } catch (e) { setSyncStatus('☁️ 同步失败'); return null; }
+    }
+
+    /* 推送本地到云端 */
+    async function pushToCloud() {
+      if (!syncConfigured()) return;
+      const localM = load(SYNC_DATA_KEY, { mtime: 0 }).mtime || 0;
+      const payload = { state: state, mtime: Date.now() };
+      try {
+        await gistWrite(payload);
+        save(SYNC_DATA_KEY, { mtime: payload.mtime });
+        setSyncStatus('☁️ 已同步');
+      } catch (e) {
+        setSyncStatus('☁️ 同步失败');
+      }
+    }
+
+    /* 配置入口 */
+    function onSyncBtnClick() {
+      const token = prompt('请输入 GitHub Token（仅 gist 权限）：', syncCfg.token || '');
+      if (token === null) return;
+      const gist = prompt('请输入 Gist ID：', syncCfg.gist || '');
+      if (gist === null) return;
+      saveSyncCfg({ token: token.trim(), gist: gist.trim() });
+      setSyncStatus('☁️ 已保存，正在同步…');
+      refreshSync();
+    }
+
+    /* 刷新同步：先拉取再推送 */
+    async function refreshSync() {
+      if (!syncConfigured()) { setSyncStatus('☁️ 未配置'); return; }
+      await pullFromCloud();
+      await pushToCloud();
+    }
+
+    /* 打卡后调用，云端合并策略：本端始终推送最新 */
+    function syncAfterCheckIn() {
+      pushToCloud();
+    }
+
+    /* 页面加载时同步一次 */
+    window.addEventListener('load', () => { setTimeout(refreshSync, 500); });
 
     /* ================= 注册 Service Worker ================= */
     if ('serviceWorker' in navigator) {

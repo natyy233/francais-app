@@ -3,7 +3,7 @@
  *  1. 离线缓存应用外壳（app shell）
  *  2. 每日定时推送"今日课程"提醒（需要用户授权通知）
  */
-const CACHE_NAME = 'francais-app-v4';
+const CACHE_NAME = 'francais-app-v6';
 const APP_SHELL = [
   './',
   './index.html',
